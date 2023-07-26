@@ -50,12 +50,11 @@ function gamma1(x: number) {
   return rotr(17, x) ^ rotr(19, x) ^ shr(10, x)
 }
 
-function sha256sum(content: Uint8Array): string {
+function sha256sum(content: Uint8Array): Uint8Array {
   // bitwise operations are limited to 32 bits in javascript, so we can't handle more than 2^32 bits of data (which is enough in our case)
   assert(content.length * 8 < 2 ** 32)
-  assert(content.length !== 0)
 
-  const hash = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]
+  const hash = Uint32Array.from([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19])
 
   const bitLen = content.length * 8
   const paddingLen = (448 - (bitLen + 1) % 512 + 512) % 512
@@ -100,7 +99,14 @@ function sha256sum(content: Uint8Array): string {
     }
 
     // Initialize the eight working variables
-    let [a, b, c, d, e, f, g, h] = hash
+    let a = hash[0]
+    let b = hash[1]
+    let c = hash[2]
+    let d = hash[3]
+    let e = hash[4]
+    let f = hash[5]
+    let g = hash[6]
+    let h = hash[7]
 
     // Main loop
     for (let t = 0; t < 64; t++) {
@@ -126,9 +132,15 @@ function sha256sum(content: Uint8Array): string {
     hash[6] = (hash[6] + g) % MODULUS
     hash[7] = (hash[7] + h) % MODULUS
   }
+
+  // Convert from Uint32Array to Uint8Array (Big endian)
+  const result = new Uint8Array(32)
+  const view = new DataView(result.buffer)
+  for (let i = 0; i < 8; i++) {
+    view.setUint32(i * 4, hash[i])
+  }
   
-  // javascript only has signed 32 bit integers, so we have to split it into 2 parts here
-  return hash.map(x => (x >>> 16 & 0xffff).toString(16).padStart(4, '0') + (x & 0xffff).toString(16).padStart(4, '0')).join('')
+  return result
 }
 
 export { sha256sum }

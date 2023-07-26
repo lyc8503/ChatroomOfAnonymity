@@ -7,7 +7,7 @@ for (let i = 0; i < b64Table.length; i++) {
   b64IndexTable[b64Table.charCodeAt(i)] = i;
 }
 
-function b64Encode(bytes: Uint8Array): string {
+function base64Encode(bytes: Uint8Array): string {
   const padding = (3 - bytes.length % 3) % 3;
   let base64 = '';
 
@@ -25,7 +25,7 @@ function b64Encode(bytes: Uint8Array): string {
   return base64.substring(0, base64.length - padding) + '=='.substring(0, padding);
 }
 
-function b64Decode(b64Str: string): Uint8Array {
+function base64Decode(b64Str: string): Uint8Array {
   if (b64Str.length % 4 !== 0) {
     throw new Error('Invalid base64 string padding');
   }
@@ -51,4 +51,12 @@ function b64Decode(b64Str: string): Uint8Array {
   return buf;
 }
 
-export { b64Encode, b64Decode }
+function base64UrlEncode(bytes: Uint8Array): string {
+  return base64Encode(bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function base64UrlDecode(b64Str: string): Uint8Array {
+  return base64Decode(b64Str.replace(/-/g, '+').replace(/_/g, '/') + '=='.substring(0, (4 - b64Str.length % 4) % 4));
+}
+
+export { base64Encode, base64Decode, base64UrlEncode, base64UrlDecode }
