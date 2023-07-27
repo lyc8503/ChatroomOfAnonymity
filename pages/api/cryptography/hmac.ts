@@ -2,7 +2,7 @@
 
 import { sha256sum } from "./sha256";
 
-function hmac_sha256(msg: Uint8Array, key: Uint8Array): Uint8Array {
+function hmacSha256(msg: Uint8Array, key: Uint8Array): Uint8Array {
   if (key.length > 64) {
     key = sha256sum(key)
   }
@@ -31,4 +31,4 @@ function hmac_sha256(msg: Uint8Array, key: Uint8Array): Uint8Array {
   return sha256sum(outerTmp)
 }
 
-export { hmac_sha256 }
+export { hmacSha256 }

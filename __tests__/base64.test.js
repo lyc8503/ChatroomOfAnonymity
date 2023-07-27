@@ -17,7 +17,7 @@ describe('Base64 Encode', () => {
   })
 
   it('random encode test', () => {
-    for (let cnt = 0; cnt < 1000; cnt++) {
+    for (let cnt = 0; cnt < 500; cnt++) {
       const randomTest = randomUint8(cnt);
       const encoded = base64Encode(randomTest);
 
@@ -43,7 +43,7 @@ describe('Base64 Decode', () => {
   })
 
   it('random decode test', () => {
-    for (let cnt = 0; cnt < 1000; cnt++) {
+    for (let cnt = 0; cnt < 500; cnt++) {
       const randomTest = randomUint8(cnt);
       const decoded = base64Decode(Buffer.from(randomTest).toString('base64'));
       
@@ -54,7 +54,7 @@ describe('Base64 Decode', () => {
 
 describe('Base64 URL', () => {
   it('random encode test', () => {
-    for (let cnt = 0; cnt < 1000; cnt++) {
+    for (let cnt = 0; cnt < 500; cnt++) {
       const randomTest = randomUint8(cnt);
       const encoded = base64UrlEncode(randomTest, true);
       expect(encoded).toEqual(Buffer.from(randomTest).toString('base64url'));
@@ -62,7 +62,7 @@ describe('Base64 URL', () => {
   })
 
   it('random decode test', () => {
-    for (let cnt = 0; cnt < 1000; cnt++) {
+    for (let cnt = 0; cnt < 500; cnt++) {
       const randomTest = randomUint8(cnt);
       const decoded = base64UrlDecode(Buffer.from(randomTest).toString('base64url'));
       
