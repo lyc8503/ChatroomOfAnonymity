@@ -1,9 +1,11 @@
 import { jwtSign, jwtVerify } from '../pages/api/cryptography/jwt'
+import { setIssuer } from '../pages/api/cryptography/jwt'
 
 
 describe('jwt', () => {
   // Fake system time to get reproducible results
   jest.useFakeTimers().setSystemTime(1672531200000)
+  setIssuer('COA')
 
   it('should sign', () => {
     const token = jwtSign('test user', 100, { 'test': 123 }, 'key')

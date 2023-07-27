@@ -2,7 +2,9 @@
 
 🚧WORKING IN PROGRESS🚧
 
-Currently working on: Cryptography related algorithms (Base64, SHA256)
+Finished cryptography: HMAC, SHA256, Base64, JWT (100% test coverage)
+
+Currently working on auth.
 
 ```bash
 # How to run

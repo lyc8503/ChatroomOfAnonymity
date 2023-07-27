@@ -1,9 +1,14 @@
 // Reference: https://datatracker.ietf.org/doc/html/rfc7519
 
+import { INSTANCE_NAME } from "../config"
 import { base64UrlDecode, base64UrlEncode } from "./base64"
 import { hmacSha256 } from "./hmac"
 
-const ISSUER = 'COA'
+let ISSUER = INSTANCE_NAME
+
+function setIssuer(issuer: string) {
+  ISSUER = issuer
+}
 
 function jwtSign(subject: string, validFor: number, extraData: object, secret: string): string {
   const header = {
@@ -48,4 +53,4 @@ function jwtVerify(token: string, secret: string): object {
   return payload
 }
 
-export { jwtSign, jwtVerify }
+export { jwtSign, jwtVerify, setIssuer }
