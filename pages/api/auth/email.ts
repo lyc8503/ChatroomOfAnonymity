@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import nodemailer from 'nodemailer'
-import { EMAIL_OPTIONS, INSTANCE_NAME } from '../config'
-import { setCode } from './cache'
+import { EMAIL_OPTIONS, INSTANCE_NAME, URL } from '../config'
+import { createRedisInstance } from '../database/redis'
 
 type Data = {
   msg: string
@@ -17,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return
   }
 
+  const redis = createRedisInstance()
   const payload: Payload = req.body
 
   const code = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
@@ -27,11 +28,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       from: EMAIL_OPTIONS.auth.user,
       to: payload.email,
       subject: 'Email Verification',
-      text: `Verification code from ${INSTANCE_NAME}: ${code}. If you didn't request this code, you can safely ignore this email.`
+      text: `Verification code from ${INSTANCE_NAME}(${URL}): ${code}. If you didn't request this code, you can safely ignore this email.`
     })
     console.log(result)
-
-    setCode(payload.email, code, 5 * 60)
+    
+    await redis.set(payload.email, code, 'EX', 5 * 60)
     res.status(200).json({ msg: 'success' })
   } catch (e) {
     console.log(e)
