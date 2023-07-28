@@ -9,9 +9,6 @@ type Payload = {
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
-  console.log("FETCH")
-
   if (req.method !== 'GET') {
     res.status(405).json({ msg: 'Method Not Allowed' })
     return
@@ -31,6 +28,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   res.setHeader('Content-Type', 'text/event-stream;charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
+
+  const historyMessages = await redis.lrange('messages', 0, -1)
+  for (const msg of historyMessages) {
+    res.write(msg + "\n")
+  }
 
   redis.on('message', (channel, message) => {
     if (channel !== 'msg_channel') return

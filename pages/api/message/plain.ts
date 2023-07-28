@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     subject: sub
   }
 
-  await redis.lpush('messages', JSON.stringify(msg))
+  await redis.rpush('messages', JSON.stringify(msg))
   await redis.publish('msg_channel', JSON.stringify(msg))
 
   res.status(200).json({ msg: 'success' })
