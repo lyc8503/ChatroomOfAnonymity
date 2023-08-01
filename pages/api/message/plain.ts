@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { type } from 'os'
 import { jwtVerify } from '../cryptography/jwt'
 import { JWT_SECRET } from '../config'
 import { createRedisInstance } from '../database/redis'

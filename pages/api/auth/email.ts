@@ -22,6 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   const code = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
   console.log(`Verification code request from ${payload.email}: ${code}`)
+  await redis.set(payload.email, code, 'EX', 5 * 60)
 
   try {
     const result = await nodemailer.createTransport(EMAIL_OPTIONS).sendMail({
@@ -32,7 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
     console.log(result)
     
-    await redis.set(payload.email, code, 'EX', 5 * 60)
     res.status(200).json({ msg: 'success' })
   } catch (e) {
     console.log(e)

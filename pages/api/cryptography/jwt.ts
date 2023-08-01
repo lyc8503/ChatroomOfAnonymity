@@ -1,10 +1,9 @@
 // Reference: https://datatracker.ietf.org/doc/html/rfc7519
 
-import { INSTANCE_NAME } from "../config"
 import { base64UrlDecode, base64UrlEncode } from "./base64"
 import { hmacSha256 } from "./hmac"
 
-let ISSUER = INSTANCE_NAME
+let ISSUER = ''
 
 function setIssuer(issuer: string) {
   ISSUER = issuer

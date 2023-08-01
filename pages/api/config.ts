@@ -1,4 +1,5 @@
 import { env } from "process"
+import { setIssuer } from "./cryptography/jwt"
 
 const INSTANCE_NAME = 'COA-test'
 const JWT_SECRET = 'COA-test'
@@ -18,5 +19,7 @@ const EMAIL_OPTIONS = {
 		pass: env.EMAIL_PASSWORD || 'test'
 	}
 }
+
+setIssuer(INSTANCE_NAME)
 
 export { EMAIL_OPTIONS, INSTANCE_NAME, JWT_SECRET, URL, REDIS_CONFIG }
