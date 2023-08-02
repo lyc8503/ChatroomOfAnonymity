@@ -1,8 +1,9 @@
 import assert from "node:assert"
 import { sha256sum } from "./sha256"
 
-// This is a textbook RSA implementation, which is not secure
+// This is a textbook RSA implementation, which is not secure, only for learning purpose
 // https://crypto.stackexchange.com/questions/1448/definition-of-textbook-rsa
+// https://en.wikipedia.org/wiki/RSA_(cryptosystem)
 
 // Return a ^ b % m
 function binPow(a: bigint, b: bigint, m: bigint): bigint {
@@ -19,7 +20,7 @@ function binPow(a: bigint, b: bigint, m: bigint): bigint {
 }
 
 // Miller–Rabin primality test
-// Reference: Miller–Rabin primality test
+// Reference: https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
 function isProbablyPrime(n: bigint, k: number): boolean {
   if (n % 2n === 0n) {  // Are u kidding me?
     return false;
@@ -91,6 +92,12 @@ function gcdExt(a: bigint, b: bigint): [bigint, bigint, bigint] {
   return [d, y, x - y * (a / b)]
 }
 
+function modInverse(a: bigint, m: bigint): bigint {
+  const [d, x, y] = gcdExt(a, m)
+  assert(d === 1n, "gcd(a, m) !== 1")
+  return (x % m + m) % m
+}
+
 function rsaKeyGen(): { e: bigint, d: bigint, n: bigint } {
   const e = 65537n
   const [p, q] = [bigPrime(), bigPrime()]
@@ -98,9 +105,7 @@ function rsaKeyGen(): { e: bigint, d: bigint, n: bigint } {
   const n = p * q
   const phi = (p - 1n) * (q - 1n)
   
-  let [_, d, __] = gcdExt(e, phi)
-  d = (d % phi + phi) % phi
-
+  const d = modInverse(e, phi)
   assert(e * d % phi === 1n, "n * d % phi !== 1")
 
   return { e, d, n }
@@ -116,17 +121,34 @@ function rsaDecrypt(n: bigint, d: bigint, c: bigint): bigint {
   return binPow(c, d, n)
 }
 
+function rsaSign(n: bigint, d: bigint, m: bigint) {
+  return rsaEncrypt(n, d, m)
+}
+
+function rsaVerify(n: bigint, e: bigint, m: bigint, s: bigint): boolean {
+  return rsaDecrypt(n, e, s) === m
+}
+
 function rsaSignSHA256(n: bigint, d: bigint, msg: Uint8Array): bigint {
   const digest = sha256sum(msg)
   const m = BigInt(`0x${Array.from(digest).map((x) => x.toString(16).padStart(2, '0')).join('')}`)
-  return binPow(m, d, n)
+  return rsaSign(n, d, m)
 }
 
 function rsaVerifySHA256(n: bigint, e: bigint, msg: Uint8Array, s: bigint): boolean {
   const digest = sha256sum(msg)
   const m = BigInt(`0x${Array.from(digest).map((x) => x.toString(16).padStart(2, '0')).join('')}`)
-  const c = binPow(s, e, n)
-  return m === c
+  return rsaVerify(n, e, m, s)
 }
 
-export { isProbablyPrime, binPow, rsaKeyGen, rsaEncrypt, rsaDecrypt, rsaSignSHA256, rsaVerifySHA256 }
+// https://en.wikipedia.org/wiki/Blind_signature
+function rsaBlindMask(n: bigint, e: bigint, r: bigint, m: bigint): bigint {
+  return (m * binPow(r, e, n)) % n
+}
+
+function rsaBlindUnmask(n: bigint, r: bigint, sig: bigint) {
+  const rr = modInverse(r, n)
+  return (sig * rr) % n
+}
+
+export { isProbablyPrime, binPow, rsaKeyGen, rsaEncrypt, rsaDecrypt, rsaSign, rsaVerify, rsaSignSHA256, rsaVerifySHA256, rsaBlindMask, rsaBlindUnmask }

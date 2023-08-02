@@ -1,4 +1,4 @@
-import { binPow, isProbablyPrime, rsaKeyGen, rsaEncrypt, rsaDecrypt, rsaSignSHA256, rsaVerifySHA256 } from '../pages/api/cryptography/rsa'
+import { binPow, isProbablyPrime, rsaKeyGen, rsaEncrypt, rsaDecrypt, rsaSign, rsaVerify, rsaSignSHA256, rsaVerifySHA256, rsaBlindMask, rsaBlindUnmask } from '../pages/api/cryptography/rsa'
 
 
 describe('RSA', () => {
@@ -75,4 +75,22 @@ describe('RSA', () => {
     }
   })
 
+  it('should blind sign and verify', () => {
+    const {n, e, d} = rsaKeyGen()
+    
+    for (let i = 0; i < 1000; i++) {
+      const buf = new Uint8Array(128)
+      crypto.getRandomValues(buf)
+      const m = BigInt('0x' + buf.reduce((s, b) => s + b.toString(16).padStart(2, '0'), ''))
+      
+      crypto.getRandomValues(buf)
+      const r = BigInt('0x' + buf.reduce((s, b) => s + b.toString(16).padStart(2, '0'), ''))
+
+      const masked = rsaBlindMask(n, e, r, m)
+      const sig = rsaSign(n, d, masked)  // <= blind sign here
+      const unmasked = rsaBlindUnmask(n, r, sig)
+      
+      expect(rsaVerify(n, e, m, unmasked)).toBe(true)
+    }
+  })
 })

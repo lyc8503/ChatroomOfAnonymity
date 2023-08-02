@@ -2,7 +2,7 @@
 
 🚧WORKING IN PROGRESS🚧
 
-Finished cryptography: HMAC, SHA256, Base64, JWT (100% test coverage)
+Finished cryptography: HMAC, SHA256, Base64, JWT, RSA (100% test coverage)
 
 Currently working on auth.
 
