@@ -1,4 +1,4 @@
-import { binPow, isProbablyPrime, rsaKeyGen } from '../pages/api/cryptography/rsa'
+import { binPow, isProbablyPrime, rsaKeyGen, rsaEncrypt, rsaDecrypt } from '../pages/api/cryptography/rsa'
 
 
 describe('RSA', () => {
@@ -8,7 +8,7 @@ describe('RSA', () => {
     for (let i = 0; i < 1000; i++) {
       const a = BigInt(Math.floor(Math.random() * 10000))
       const b = BigInt(Math.floor(Math.random() * 1000))
-      const m = BigInt(Math.floor(Math.random() * 100000))
+      const m = BigInt(Math.floor(Math.random() * 100000) + 1)
       expect(binPow(a, b, m)).toBe(a ** b % m)
     }
   })
@@ -42,8 +42,22 @@ describe('RSA', () => {
 
   it('should generate rsa key', () => {
     const {n, e, d} = rsaKeyGen()
-    expect(n > 2n ** 2000n).toBe(true)
-    expect(d > 2n ** 2000n).toBe(true)
+    expect(n >= 2n ** 2048n).toBe(true)
+    expect(d >= 2n ** 2048n).toBe(true)
+  })
+
+  it('should encrypt and decrypt', () => {
+    const {n, e, d} = rsaKeyGen()
+
+    for (let i = 0; i < 1000; i++) {
+      const buf = new Uint8Array(256) // 2040 bits
+      crypto.getRandomValues(buf)
+
+      const m = BigInt('0x' + buf.reduce((s, b) => s + b.toString(16).padStart(2, '0'), ''))
+      const c = rsaEncrypt(n, e, m)
+      const m2 = rsaDecrypt(n, d, c)
+      expect(m2 === m).toBe(true)
+    }
   })
 
 })

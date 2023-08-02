@@ -58,8 +58,19 @@ function isProbablyPrime(n: bigint, k: number): boolean {
 // Generate a big enough prime number
 function bigPrime(): bigint {
   while (true) {
-    const buf = new Uint8Array(1024 / 8);  // 1024-bit long
+    const buf = new Uint8Array(129);  // at least 1024-bit long
     crypto.getRandomValues(buf);
+
+    // Make sure the first byte > 0
+    if(buf[0] === 0) {
+      buf[0] = 1;
+    }
+
+    // Make sure it's an odd number
+    if (buf[buf.length - 1] % 2 === 0) {
+      buf[buf.length - 1] += 1;
+    }
+
     const n = BigInt(`0x${Array.from(buf).map((x) => x.toString(16).padStart(2, '0')).join('')}`);
     if (isProbablyPrime(n, 20)) {
       return n
@@ -76,7 +87,7 @@ function gcdExt(a: bigint, b: bigint): [bigint, bigint, bigint] {
   return [d, y, x - y * (a / b)]
 }
 
-function rsaKeyGen() {
+function rsaKeyGen(): { e: bigint, d: bigint, n: bigint } {
   const e = 65537n
   const [p, q] = [bigPrime(), bigPrime()]
 
@@ -92,5 +103,13 @@ function rsaKeyGen() {
 }
 
 
+function rsaEncrypt(n: bigint, e: bigint, m: bigint): bigint {
+  assert(m < n, "m >= n")
+  return binPow(m, e, n)
+}
 
-export { isProbablyPrime, binPow, rsaKeyGen }
+function rsaDecrypt(n: bigint, d: bigint, c: bigint): bigint {
+  return binPow(c, d, n)
+}
+
+export { isProbablyPrime, binPow, rsaKeyGen, rsaEncrypt, rsaDecrypt }
