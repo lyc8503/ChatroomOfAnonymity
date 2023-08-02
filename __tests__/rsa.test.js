@@ -1,4 +1,4 @@
-import { binPow, isProbablyPrime, rsaKeyGen, rsaEncrypt, rsaDecrypt } from '../pages/api/cryptography/rsa'
+import { binPow, isProbablyPrime, rsaKeyGen, rsaEncrypt, rsaDecrypt, rsaSignSHA256, rsaVerifySHA256 } from '../pages/api/cryptography/rsa'
 
 
 describe('RSA', () => {
@@ -50,13 +50,28 @@ describe('RSA', () => {
     const {n, e, d} = rsaKeyGen()
 
     for (let i = 0; i < 1000; i++) {
-      const buf = new Uint8Array(256) // 2040 bits
+      const buf = new Uint8Array(256) // 2048 bits
       crypto.getRandomValues(buf)
 
       const m = BigInt('0x' + buf.reduce((s, b) => s + b.toString(16).padStart(2, '0'), ''))
       const c = rsaEncrypt(n, e, m)
       const m2 = rsaDecrypt(n, d, c)
       expect(m2 === m).toBe(true)
+    }
+  })
+
+  it('should sign and verify', () => {
+    const {n, e, d} = rsaKeyGen()
+
+    const buf = new Uint8Array(256)
+    expect(rsaVerifySHA256(n, e, buf, 123456n)).toBe(false)
+    
+    for (let i = 0; i < 1000; i++) {
+      const buf = new Uint8Array(256) // 2048 bits
+      crypto.getRandomValues(buf)
+  
+      const s = rsaSignSHA256(n, d, buf)
+      expect(rsaVerifySHA256(n, e, buf, s)).toBe(true)
     }
   })
 

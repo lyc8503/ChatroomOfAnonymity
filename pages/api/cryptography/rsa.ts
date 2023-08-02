@@ -1,4 +1,8 @@
 import assert from "node:assert"
+import { sha256sum } from "./sha256"
+
+// This is a textbook RSA implementation, which is not secure
+// https://crypto.stackexchange.com/questions/1448/definition-of-textbook-rsa
 
 // Return a ^ b % m
 function binPow(a: bigint, b: bigint, m: bigint): bigint {
@@ -112,4 +116,17 @@ function rsaDecrypt(n: bigint, d: bigint, c: bigint): bigint {
   return binPow(c, d, n)
 }
 
-export { isProbablyPrime, binPow, rsaKeyGen, rsaEncrypt, rsaDecrypt }
+function rsaSignSHA256(n: bigint, d: bigint, msg: Uint8Array): bigint {
+  const digest = sha256sum(msg)
+  const m = BigInt(`0x${Array.from(digest).map((x) => x.toString(16).padStart(2, '0')).join('')}`)
+  return binPow(m, d, n)
+}
+
+function rsaVerifySHA256(n: bigint, e: bigint, msg: Uint8Array, s: bigint): boolean {
+  const digest = sha256sum(msg)
+  const m = BigInt(`0x${Array.from(digest).map((x) => x.toString(16).padStart(2, '0')).join('')}`)
+  const c = binPow(s, e, n)
+  return m === c
+}
+
+export { isProbablyPrime, binPow, rsaKeyGen, rsaEncrypt, rsaDecrypt, rsaSignSHA256, rsaVerifySHA256 }
