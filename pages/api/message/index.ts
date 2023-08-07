@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const payload: Payload = req.query
   const redis = createRedisInstance()
 
-  let identity: { nickname?: string, sub?: string };
+  let identity: { nickname?: string, sub?: string }
   try {
     identity = jwtVerify(payload.token || "", JWT_SECRET)
   } catch(e) {

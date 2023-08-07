@@ -44,6 +44,7 @@ describe('RSA', () => {
     const {n, e, d} = rsaKeyGen()
     expect(n >= 2n ** 2048n).toBe(true)
     expect(d >= 2n ** 2048n).toBe(true)
+    expect(e).toBeGreaterThanOrEqual(65537)
   })
 
   it('should encrypt and decrypt', () => {
