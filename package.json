@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@geist-ui/core": "^2.3.8",
+    "@geist-ui/icons": "^1.0.2",
     "@types/node": "20.4.2",
     "@types/react": "18.2.15",
     "@types/react-dom": "18.2.7",
