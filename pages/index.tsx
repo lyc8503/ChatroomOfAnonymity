@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { Button, Card, Fieldset, Input, Page } from '@geist-ui/core'
+import { Button, Card, Fieldset, Input, Page, useToasts } from '@geist-ui/core'
 import styles from '../styles/Home.module.css'
 import { useState } from 'react'
 
@@ -9,6 +9,9 @@ export default function Home() {
 
   const [email, setEmail] = useState('')
   const [mailSent, setMailSent] = useState(false)
+  const [nickname, setNickname] = useState('')
+  const [code, setCode] = useState('')
+  const { setToast } = useToasts({placement: 'topRight'})
 
   const handleEmail = async () => {
     const resp = await fetch('/api/auth/email', {
@@ -23,6 +26,7 @@ export default function Home() {
     
     setMailSent(true)
     console.log(resp)
+    setToast({text: (await resp.json()).msg, delay: 5000, type: resp.status>=400 ? 'error' : 'success'})
   }
 
   const handleLogin = async () => {
@@ -32,11 +36,14 @@ export default function Home() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-
+        'sub': email,
+        'nickname': nickname,
+        'code': code
       })
     })
 
     console.log(resp)
+    setToast({text: (await resp.json()).msg, delay: 5000, type: resp.status>=400 ? 'error' : 'success'})
   }
 
   return (
@@ -60,8 +67,10 @@ export default function Home() {
         {
           mailSent ?
             <>
-              <Input scale={4 / 3} label="Code" placeholder='请输入验证码' style={{ width: '300px' }}></Input><br />
-              <Input scale={4 / 3} label="Name" placeholder='请输入昵称' style={{ width: '300px' }}></Input><br />
+              <Input scale={4 / 3} label="Code" placeholder='请输入验证码' style={{ width: '300px' }}
+                value={code} onChange={(e) => setCode(e.target.value)}></Input><br />
+              <Input scale={4 / 3} label="Name" placeholder='请输入昵称' style={{ width: '300px' }}
+                value={nickname} onChange={(e) => setNickname(e.target.value)}></Input><br />
               <Button onClick={handleLogin}>登录</Button><br />
             </>
             :
