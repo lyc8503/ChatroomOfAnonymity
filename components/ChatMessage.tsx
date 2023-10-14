@@ -1,12 +1,14 @@
-import { Avatar, Card, Grid, Text, Textarea } from "@geist-ui/core";
+import { Avatar, Card, Grid, Text, Textarea, Tooltip } from "@geist-ui/core";
 import Markdown from "react-markdown";
 
 export default function ChatMessage({ message }: { message: any }) {
   return (
     <>
-      <Grid.Container>
+      <Grid.Container style={{ marginBlock: "0.5em" }}>
         <Grid>
-          <Avatar text={message.nickname} scale={2} />
+          <Tooltip text={message.subject} placement="topStart">
+            <Avatar text={message.nickname} scale={2} />
+          </Tooltip>
         </Grid>
         <Grid
           style={{

@@ -1,19 +1,10 @@
 import Head from "next/head";
-import {
-  Button,
-  Card,
-  Description,
-  Fieldset,
-  Input,
-  Page,
-  Spinner,
-  Textarea,
-  useToasts,
-} from "@geist-ui/core";
+import { Button, Card, Spinner, Textarea, useToasts } from "@geist-ui/core";
 import { useState } from "react";
 import { useImmer } from "use-immer";
 import { useLocalStorageState } from "ahooks/lib"; //Workaround: https://github.com/vercel/next.js/issues/55791
 import ChatMessage from "@/components/ChatMessage";
+import { useRouter } from "next/router";
 
 export default function Chat() {
   const { setToast } = useToasts({ placement: "topRight" });
@@ -21,6 +12,7 @@ export default function Chat() {
   const [inputDisabled, setInputDisabled] = useState(false);
   const [messages, updateMessages] = useImmer<any[]>([]);
   const [jwt, setJwt] = useLocalStorageState("jwt");
+  const router = useRouter();
 
   const handleSend = async () => {
     if (draft === "") return;
@@ -49,6 +41,17 @@ export default function Chat() {
 
   const getMessages = async () => {
     const resp = await fetch(`/api/message?token=${jwt}`);
+    if (resp.status >= 400) {
+      setToast({
+        text: (await resp.json()).msg,
+        delay: 5000,
+        type: "error",
+      });
+      if (resp.status == 401) {
+        router.push("/");
+      }
+      return;
+    }
     if (resp.body === null) return;
     const reader = resp.body.pipeThrough(new TextDecoderStream()).getReader();
     let buf = "";
@@ -73,7 +76,7 @@ export default function Chat() {
         <title>Chatroom Of Anonymity</title>
       </Head>
 
-      <Card>
+      <Card style={{ overflowY: "scroll", height: "90vh" }}>
         {messages.map((message: any, index: number) => (
           <ChatMessage message={message} />
         ))}
@@ -88,16 +91,20 @@ export default function Chat() {
         ></Textarea>
         {inputDisabled ? (
           <>
-            <Button disabled>
+            <Button width="10%" disabled>
               发送中<Spinner></Spinner>
             </Button>
           </>
         ) : (
           <>
-            <Button onClick={handleSend}>发送</Button>
+            <Button width="10%" onClick={handleSend}>
+              发送
+            </Button>
           </>
         )}
-        <Button onClick={getMessages}>get</Button>
+        <Button width="10%" onClick={getMessages}>
+          get
+        </Button>
       </Card>
     </>
   );

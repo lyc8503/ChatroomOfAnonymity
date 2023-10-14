@@ -3,7 +3,6 @@ import { Button, Card, Fieldset, Input, Page, useToasts } from "@geist-ui/core";
 import styles from "../styles/Home.module.css";
 import { useState } from "react";
 import { useLocalStorageState } from "ahooks/lib"; //Workaround: https://github.com/vercel/next.js/issues/55791
-import { redirect } from "next/navigation";
 import { useRouter } from "next/router";
 
 export default function Home() {
@@ -88,7 +87,7 @@ export default function Home() {
 
         <Input
           scale={4 / 3}
-          label="Mail"
+          label="邮箱"
           placeholder="请输入邮箱"
           disabled={mailSent}
           style={{ width: "300px" }}
@@ -100,7 +99,7 @@ export default function Home() {
           <>
             <Input
               scale={4 / 3}
-              label="Code"
+              label="验证码"
               placeholder="请输入验证码"
               style={{ width: "300px" }}
               value={code}
@@ -109,7 +108,7 @@ export default function Home() {
             <br />
             <Input
               scale={4 / 3}
-              label="Name"
+              label="昵称"
               placeholder="请输入昵称"
               style={{ width: "300px" }}
               value={nickname}
