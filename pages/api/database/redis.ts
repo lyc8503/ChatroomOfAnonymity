@@ -1,6 +1,6 @@
-import Redis, { RedisOptions } from 'ioredis'
-import { REDIS_CONFIG } from '../config'
- 
+import Redis, { RedisOptions } from "ioredis";
+import { REDIS_CONFIG } from "../config";
+
 export function createRedisInstance() {
   try {
     const options: RedisOptions = {
@@ -15,20 +15,20 @@ export function createRedisInstance() {
         if (times > 3) {
           throw new Error(`[Redis] Could not connect after ${times} attempts`);
         }
- 
+
         return Math.min(times * 200, 1000);
       },
-    }
+    };
 
-    const redis = new Redis(options)
- 
-    redis.on('error', (error: unknown) => {
-      console.log('[Redis] Error connecting', error);
-    })
- 
-    return redis
+    const redis = new Redis(options);
+
+    redis.on("error", (error: unknown) => {
+      console.log("[Redis] Error connecting", error);
+    });
+
+    return redis;
   } catch (e) {
-    console.log(e)
-    throw new Error(`[Redis] Could not create a Redis instance`)
+    console.log(e);
+    throw new Error(`[Redis] Could not create a Redis instance`);
   }
 }
