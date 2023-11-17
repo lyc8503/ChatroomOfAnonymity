@@ -17,7 +17,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <GeistProvider themeType={style}>
       <CssBaseline />
-      <Component {...pageProps} />
+      <Component {...pageProps} setStyle={setStyle} />
     </GeistProvider>
   );
 }

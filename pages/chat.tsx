@@ -10,7 +10,7 @@ import {
   useToasts,
 } from "@geist-ui/core";
 import { Settings } from "@geist-ui/icons";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useImmer } from "use-immer";
 import { useLocalStorageState, useRequest } from "ahooks/lib"; //Workaround: https://github.com/vercel/next.js/issues/55791
 import ChatMessage from "@/components/ChatMessage";
@@ -20,19 +20,18 @@ import { rsaBlindMask, rsaBlindUnmask } from "./api/cryptography/rsa";
 import { sha256sum } from "./api/cryptography/sha256";
 import { INSTANCE_NAME } from "./api/config";
 import { base64UrlEncode } from "./api/cryptography/base64";
+import NoSsr from "@/components/NoSsr";
 
 type SignedCookie = {
   cookie: string;
   signature: string;
 };
 
-export default function Chat({ e, n }: any) {
+export default function Chat({ e, n, setStyle }: any) {
   e = BigInt("0x" + e);
   n = BigInt("0x" + n);
   const { setToast } = useToasts({ placement: "topRight" });
-  const [draft, setDraft] = useState("");
   const [isSettingsOpen, setSettingsOpen] = useState(false);
-  const [inputDisabled, setInputDisabled] = useState(false);
   const [isAnonymous, setIsAnonymous] = useLocalStorageState<boolean>(
     "isAnonymous",
     { defaultValue: false },
@@ -51,10 +50,17 @@ export default function Chat({ e, n }: any) {
   const [messages, updateMessages] = useImmer<any[]>([]);
   const [jwt, setJwt] = useLocalStorageState("jwt");
   const router = useRouter();
+  const inputBox = useRef<any>(null);
 
+  const hashCookie = (cookie?: string) =>
+    cookie
+      ? base64UrlEncode(
+          sha256sum(new TextEncoder().encode(cookie + INSTANCE_NAME)),
+        ).slice(0, 8)
+      : "UNKNOWN";
   const handleSend = async () => {
+    const draft = inputBox.current?.value;
     if (draft === "") return;
-    setInputDisabled(true);
     let resp;
     if (!isAnonymous) {
       resp = await fetch("/api/message/plain", {
@@ -69,6 +75,14 @@ export default function Chat({ e, n }: any) {
         }),
       });
     } else {
+      if (currentCookie === "") {
+        setToast({
+          text: "请先选择饼干",
+          delay: 5000,
+          type: "error",
+        });
+        return;
+      }
       resp = await fetch("/api/message/anonymous", {
         method: "POST",
         headers: {
@@ -90,10 +104,13 @@ export default function Chat({ e, n }: any) {
       type: resp.status >= 400 ? "error" : "success",
     });
     if (resp.status < 400) {
-      setDraft("");
+      inputBox.current.value = "";
     }
-    setInputDisabled(false);
   };
+
+  const { run: runSend, loading: sending } = useRequest(handleSend, {
+    manual: true,
+  });
 
   const getMessages = async () => {
     const resp = await fetch(`/api/message?token=${jwt}`);
@@ -179,6 +196,8 @@ export default function Chat({ e, n }: any) {
     manual: true,
   });
 
+  useRequest(getMessages);
+
   return (
     <>
       <Head>
@@ -192,28 +211,33 @@ export default function Chat({ e, n }: any) {
       </Card>
 
       <Card>
-        <Textarea
-          width="80%"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="输入消息"
-        ></Textarea>
-        <Button width="10%" loading={inputDisabled} onClick={handleSend}>
+        <NoSsr>
+          <Textarea
+            width="80%"
+            ref={inputBox}
+            placeholder={`正以${
+              isAnonymous ? hashCookie(currentCookie) : nickname
+            }身份输入消息`}
+          ></Textarea>
+        </NoSsr>
+        <Button width="10%" loading={sending} onClick={runSend}>
           发送
         </Button>
         <Button width="5%" onClick={openSettings} icon={<Settings />} />
-        <Button width="5%" onClick={getMessages}>
-          get
-        </Button>
       </Card>
       <Modal visible={isSettingsOpen} onClose={closeSettings}>
         <Modal.Title>设置</Modal.Title>
         <Modal.Content>
-          匿名开关
-          <Toggle
-            checked={isAnonymous}
-            onChange={(e) => setIsAnonymous(e.target.checked)}
-          ></Toggle>
+          <p>
+            匿名开关
+            <Toggle
+              checked={isAnonymous}
+              onChange={(e) => {
+                setIsAnonymous(e.target.checked);
+                setStyle(e.target.checked ? "dark" : "light");
+              }}
+            ></Toggle>
+          </p>
           {isAnonymous ? (
             <>
               <Select
@@ -223,11 +247,7 @@ export default function Chat({ e, n }: any) {
               >
                 {cookies?.map((cookie: SignedCookie, index: number) => (
                   <Select.Option value={cookie.cookie} key={index.toString()}>
-                    {base64UrlEncode(
-                      sha256sum(
-                        new TextEncoder().encode(cookie.cookie + INSTANCE_NAME),
-                      ),
-                    ).slice(0, 8)}
+                    {hashCookie(cookie.cookie)}
                   </Select.Option>
                 ))}
               </Select>
