@@ -1,4 +1,8 @@
-import assert from "node:assert";
+function assert(condition: boolean, message: string) {
+  if (!condition) {
+    throw new Error(message || "Assertion failed");
+  }
+}
 import { sha256sum } from "./sha256";
 
 // This is a textbook RSA implementation, which is not secure, only for learning purpose

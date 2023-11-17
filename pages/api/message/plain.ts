@@ -10,6 +10,7 @@ type Data = {
 type Payload = {
   token: string;
   message: string;
+  nickname: string;
 };
 
 export default async function handler(
@@ -24,7 +25,7 @@ export default async function handler(
   const payload: Payload = req.body;
   const redis = createRedisInstance();
 
-  let identity: { nickname?: string; sub?: string };
+  let identity: { sub?: string };
   try {
     identity = jwtVerify(payload.token, JWT_SECRET);
   } catch (e) {
@@ -33,8 +34,16 @@ export default async function handler(
     return;
   }
 
+  if (
+    payload.nickname &&
+    (payload.nickname.length < 3 || payload.nickname.length > 20)
+  ) {
+    res.status(400).json({ msg: "Nickname length should be between 3 and 20" });
+    return;
+  }
+
   const message = payload.message;
-  const nickname = identity.nickname;
+  const nickname = payload.nickname;
   const sub = identity.sub;
 
   console.log(`Message from ${nickname}(${sub}): ${message}`);

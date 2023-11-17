@@ -27,7 +27,7 @@ export default async function handler(
     .toString()
     .padStart(6, "0");
   console.log(`Verification code request from ${payload.email}: ${code}`);
-  await redis.set(payload.email, code, "EX", 5 * 60);
+  await redis.set("code_" + payload.email, code, "EX", 5 * 60);
 
   try {
     const result = await nodemailer.createTransport(EMAIL_OPTIONS).sendMail({

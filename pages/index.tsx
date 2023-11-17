@@ -8,10 +8,12 @@ import { useRouter } from "next/router";
 export default function Home() {
   const [email, setEmail] = useState("");
   const [mailSent, setMailSent] = useState(false);
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname] = useLocalStorageState<string | undefined>(
+    "nickname",
+  );
   const [code, setCode] = useState("");
   const { setToast } = useToasts({ placement: "topRight" });
-  const [jwt, setJwt] = useLocalStorageState("jwt");
+  const [jwt, setJwt] = useLocalStorageState<string | undefined>("jwt");
   const router = useRouter();
 
   const handleEmail = async () => {

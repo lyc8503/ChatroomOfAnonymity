@@ -12,7 +12,6 @@ type Data = {
 type Payload = {
   sub: string;
   code: string;
-  nickname: string;
 };
 
 export default async function handler(
@@ -27,22 +26,9 @@ export default async function handler(
   const redis = createRedisInstance();
   const payload: Payload = req.body;
 
-  if (
-    payload.nickname &&
-    (payload.nickname.length < 3 || payload.nickname.length > 20)
-  ) {
-    res.status(400).json({ msg: "Nickname length should be between 3 and 20" });
-    return;
-  }
-
-  if ((await redis.get(payload.sub)) === payload.code) {
+  if ((await redis.get("code_" + payload.sub)) === payload.code) {
     await redis.del(payload.sub);
-    const token = jwtSign(
-      payload.sub,
-      3 * 86400,
-      { nickname: payload.nickname },
-      JWT_SECRET,
-    );
+    const token = jwtSign(payload.sub, 3 * 86400, {}, JWT_SECRET);
     res
       .status(200)
       .json({ msg: "success", token: token, expiration: 3 * 86400 });

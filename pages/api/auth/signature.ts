@@ -1,8 +1,9 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import { jwtVerify } from "../cryptography/jwt";
-import { JWT_SECRET, generatedKeyPair } from "../config";
+import { JWT_SECRET } from "../config";
 import { rsaSign } from "../cryptography/rsa";
+import { getKeypair } from "@/util/getKeypair";
 
 type Data = {
   msg: string;
@@ -14,7 +15,7 @@ type Payload = {
   cookie: string;
 };
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>,
 ) {
@@ -24,6 +25,7 @@ export default function handler(
   }
 
   const payload: Payload = req.body;
+  const keypair = await getKeypair();
   let identity: { nickname?: string; sub?: string };
   try {
     identity = jwtVerify(payload.token || "", JWT_SECRET);
@@ -35,10 +37,6 @@ export default function handler(
 
   console.log(`${identity.sub} requested to sign ${payload.cookie}`);
 
-  const sig = rsaSign(
-    generatedKeyPair.n,
-    generatedKeyPair.d,
-    BigInt("0x" + payload.cookie),
-  );
+  const sig = rsaSign(keypair.n, keypair.d, BigInt("0x" + payload.cookie));
   res.status(200).json({ msg: "OK", signature: sig.toString(16) });
 }

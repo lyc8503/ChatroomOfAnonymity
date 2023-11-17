@@ -23,13 +23,4 @@ const EMAIL_OPTIONS = {
 
 setIssuer(INSTANCE_NAME);
 
-const generatedKeyPair = rsaKeyGen();
-
-export {
-  EMAIL_OPTIONS,
-  INSTANCE_NAME,
-  JWT_SECRET,
-  URL,
-  REDIS_CONFIG,
-  generatedKeyPair,
-};
+export { EMAIL_OPTIONS, INSTANCE_NAME, JWT_SECRET, URL, REDIS_CONFIG };

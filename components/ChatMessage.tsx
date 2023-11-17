@@ -6,7 +6,11 @@ export default function ChatMessage({ message }: { message: any }) {
     <>
       <Grid.Container style={{ marginBlock: "0.5em" }}>
         <Grid>
-          <Tooltip text={message.subject} placement="topStart">
+          <Tooltip
+            text={message.subject}
+            placement="topStart"
+            style={{ position: "sticky", top: "10px" }}
+          >
             <Avatar text={message.nickname} scale={2} />
           </Tooltip>
         </Grid>

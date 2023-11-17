@@ -1,6 +1,10 @@
 // Reference: https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
 
-import assert from "node:assert";
+function assert(condition: boolean, message?: string) {
+  if (!condition) {
+    throw new Error(message || "Assertion failed");
+  }
+}
 
 const K = [
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
