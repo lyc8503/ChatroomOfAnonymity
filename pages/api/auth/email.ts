@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import nodemailer from "nodemailer";
-import { EMAIL_OPTIONS, INSTANCE_NAME, URL } from "../config";
+import { EMAIL_OPTIONS, EMAIL_REGEX, INSTANCE_NAME, URL } from "../config";
 import { createRedisInstance } from "../database/redis";
 
 type Data = {
@@ -22,6 +22,15 @@ export default async function handler(
 
   const redis = createRedisInstance();
   const payload: Payload = req.body;
+
+  if (EMAIL_REGEX) {
+    if (!EMAIL_REGEX.test(payload.email)) {
+      res
+        .status(400)
+        .json({ msg: "Your email should match regex: " + EMAIL_REGEX.source });
+      return;
+    }
+  }
 
   const code = Math.floor(Math.random() * 1000000)
     .toString()

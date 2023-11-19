@@ -195,6 +195,10 @@ export default function Chat({ e, n, setStyle }: any) {
   const { loading: cookieLoading, run: runGetCookie } = useRequest(getCookie, {
     manual: true,
   });
+  const delCookie = () => {
+    setCookies(cookies?.filter((x) => x.cookie !== currentCookie));
+    setCurrentCookie("");
+  };
 
   useRequest(getMessages);
 
@@ -211,19 +215,26 @@ export default function Chat({ e, n, setStyle }: any) {
       </Card>
 
       <Card>
-        <NoSsr>
-          <Textarea
-            width="80%"
-            ref={inputBox}
-            placeholder={`正以${
-              isAnonymous ? hashCookie(currentCookie) : nickname
-            }身份输入消息`}
-          ></Textarea>
-        </NoSsr>
-        <Button width="10%" loading={sending} onClick={runSend}>
-          发送
-        </Button>
-        <Button width="5%" onClick={openSettings} icon={<Settings />} />
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <NoSsr>
+            <Textarea
+              width="80%"
+              ref={inputBox}
+              placeholder={`正以${
+                isAnonymous ? hashCookie(currentCookie) : nickname
+              }身份输入消息`}
+            ></Textarea>
+          </NoSsr>
+          <Button width="10%" height="60px" loading={sending} onClick={runSend}>
+            发送
+          </Button>
+          <Button
+            width="5%"
+            height="60px"
+            onClick={openSettings}
+            icon={<Settings />}
+          />
+        </div>
       </Card>
       <Modal visible={isSettingsOpen} onClose={closeSettings}>
         <Modal.Title>设置</Modal.Title>
@@ -239,7 +250,7 @@ export default function Chat({ e, n, setStyle }: any) {
             ></Toggle>
           </p>
           {isAnonymous ? (
-            <>
+            <p>
               <Select
                 value={currentCookie}
                 placeholder="选择饼干"
@@ -251,10 +262,15 @@ export default function Chat({ e, n, setStyle }: any) {
                   </Select.Option>
                 ))}
               </Select>
+              <br />
               <Button onClick={runGetCookie} loading={cookieLoading}>
                 获得新饼干
               </Button>
-            </>
+              <br />
+              <Button onClick={delCookie} type="error" ghost>
+                删除此饼干
+              </Button>
+            </p>
           ) : (
             <Input
               value={nickname}

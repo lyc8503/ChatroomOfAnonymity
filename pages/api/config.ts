@@ -1,6 +1,5 @@
 import { env } from "process";
 import { setIssuer } from "./cryptography/jwt";
-import { rsaKeyGen } from "./cryptography/rsa";
 
 const INSTANCE_NAME = "COA-test";
 const JWT_SECRET = "COA-test";
@@ -21,6 +20,15 @@ const EMAIL_OPTIONS = {
   },
 };
 
+const EMAIL_REGEX = /21\d{7}@smail.nju.edu.cn/;
+
 setIssuer(INSTANCE_NAME);
 
-export { EMAIL_OPTIONS, INSTANCE_NAME, JWT_SECRET, URL, REDIS_CONFIG };
+export {
+  EMAIL_OPTIONS,
+  EMAIL_REGEX,
+  INSTANCE_NAME,
+  JWT_SECRET,
+  URL,
+  REDIS_CONFIG,
+};

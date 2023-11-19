@@ -27,7 +27,7 @@ export default function Home() {
       }),
     });
 
-    setMailSent(true);
+    if (resp.status < 400) setMailSent(true);
     console.log(resp);
     setToast({
       text: (await resp.json()).msg,

@@ -46,7 +46,11 @@ export default async function handler(
       BigInt("0x" + payload.signature),
     ) === false
   ) {
-    res.status(401).json({ msg: "Unauthorized: invalid cookie signature" });
+    res
+      .status(401)
+      .json({
+        msg: "Unauthorized: invalid cookie signature (Cookies expire at 0:00 every day)",
+      });
     return;
   }
 

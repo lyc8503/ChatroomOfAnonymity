@@ -1,4 +1,12 @@
-import { Avatar, Card, Grid, Text, Textarea, Tooltip } from "@geist-ui/core";
+import {
+  Avatar,
+  Card,
+  Divider,
+  Grid,
+  Text,
+  Textarea,
+  Tooltip,
+} from "@geist-ui/core";
 import Markdown from "react-markdown";
 
 export default function ChatMessage({ message }: { message: any }) {
@@ -22,7 +30,7 @@ export default function ChatMessage({ message }: { message: any }) {
           }}
         >
           <Card hoverable>
-            <p style={{ lineHeight: "0.1em" }}>
+            <p>
               <b>{message.nickname}</b>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
               {new Date(message.time).toLocaleString()}
