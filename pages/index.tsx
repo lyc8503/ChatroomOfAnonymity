@@ -9,7 +9,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [mailSent, setMailSent] = useState(false);
   const [nickname, setNickname] = useLocalStorageState<string | undefined>(
-    "nickname",
+    "nickname"
   );
   const [code, setCode] = useState("");
   const { setToast } = useToasts({ placement: "topRight" });
@@ -80,10 +80,9 @@ export default function Home() {
         <p>TLDR: 很简单, 因为(除了你自己)没有人知道匿名者的身份.</p>
         <b>这是如何实现的?</b>
         <p>
-          身份的匿名性主要由 RSA 盲签名算法保证, 详细实现请参考{" "}
-          <a href="https://github.com/lyc8503/ChatroomOfAnonymity">
-            GitHub 的 README
-          </a>
+          身份的匿名性主要由 RSA 盲签名算法保证, 目前所有的代码均开源,
+          你可以自己 review 源代码验证这一点, 如果发现缺陷欢迎提出 issue.
+          后续可能会有相关的博客或文档进行更详细的解释.
         </p>
         <p>填写下方的表单登录以继续:</p>
 
@@ -146,8 +145,9 @@ export default function Home() {
       <Card>
         This is an open-source project published at{" "}
         <a href="https://github.com/lyc8503/ChatroomOfAnonymity">GitHub</a>,
-        made by <a href="https://github.com/lyc8503">@lyc8503</a>. Feel free to
-        explore its source code by yourself!
+        made by <a href="https://github.com/lyc8503">@lyc8503</a> and{" "}
+        <a href="https://github.com/52871299hzy">@Bob Huang</a>. Feel free to
+        explore its source code by yourself! Also, PRs are welcome.
       </Card>
     </>
   );
