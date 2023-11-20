@@ -20,7 +20,7 @@ const EMAIL_OPTIONS = {
   },
 };
 
-const EMAIL_REGEX = /21\d{7}@smail.nju.edu.cn/;
+const EMAIL_REGEX = /21\d{7}@smail\.nju\.edu\.cn/;
 
 setIssuer(INSTANCE_NAME);
 

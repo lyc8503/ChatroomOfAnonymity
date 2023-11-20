@@ -34,28 +34,34 @@ export default function Chat({ e, n, setStyle }: any) {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [isAnonymous, setIsAnonymous] = useLocalStorageState<boolean>(
     "isAnonymous",
-    { defaultValue: false },
+    { defaultValue: false }
   );
   const [nickname, setNickname] = useLocalStorageState<string | undefined>(
-    "nickname",
+    "nickname"
   );
   const [cookies, setCookies] = useLocalStorageState<SignedCookie[]>(
     "cookies",
-    { defaultValue: [] },
+    { defaultValue: [] }
   );
   const [currentCookie, setCurrentCookie] = useLocalStorageState<string>(
     "currentCookie",
-    { defaultValue: "" },
+    { defaultValue: "" }
   );
   const [messages, updateMessages] = useImmer<any[]>([]);
   const [jwt, setJwt] = useLocalStorageState("jwt");
   const router = useRouter();
   const inputBox = useRef<any>(null);
+  const msgEndDummy = useRef<any>(null);
+
+  useEffect(() => {
+    // scroll to bottom
+    msgEndDummy.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const hashCookie = (cookie?: string) =>
     cookie
       ? base64UrlEncode(
-          sha256sum(new TextEncoder().encode(cookie + INSTANCE_NAME)),
+          sha256sum(new TextEncoder().encode(cookie + INSTANCE_NAME))
         ).slice(0, 8)
       : "UNKNOWN";
   const handleSend = async () => {
@@ -121,6 +127,7 @@ export default function Chat({ e, n, setStyle }: any) {
         type: "error",
       });
       if (resp.status == 401) {
+        setJwt("");
         router.push("/");
       }
       return;
@@ -130,7 +137,14 @@ export default function Chat({ e, n, setStyle }: any) {
     let buf = "";
     while (true) {
       const { value, done } = await reader.read();
-      if (done) break;
+      if (done) {
+        setToast({
+          text: "连接已断开, 请尝试刷新页面",
+          delay: 60000,
+          type: "error",
+        });
+        break;
+      }
       buf += value;
       const splitBuf = buf.split("\n");
       splitBuf.slice(0, -1).map((str) => {
@@ -153,19 +167,19 @@ export default function Chat({ e, n, setStyle }: any) {
       (x) =>
         (cookie +=
           "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(
-            x % 62,
-          )),
+            x % 62
+          ))
     );
     const cookieInt = BigInt(
       "0x" +
         new TextEncoder()
           .encode(cookie)
-          .reduce((s, b) => s + b.toString(16).padStart(2, "0"), ""),
+          .reduce((s, b) => s + b.toString(16).padStart(2, "0"), "")
     );
     entropy = new Uint8Array(64);
     crypto.getRandomValues(entropy);
     const r = BigInt(
-      "0x" + entropy.reduce((s, b) => s + b.toString(16).padStart(2, "0"), ""),
+      "0x" + entropy.reduce((s, b) => s + b.toString(16).padStart(2, "0"), "")
     );
     const maskedCookie = rsaBlindMask(n, e, r, cookieInt);
 
@@ -208,10 +222,16 @@ export default function Chat({ e, n, setStyle }: any) {
         <title>Chatroom Of Anonymity</title>
       </Head>
 
-      <Card style={{ overflowY: "scroll", height: "90vh" }}>
+      <Card
+        style={{
+          overflowY: "scroll",
+          height: "90vh",
+        }}
+      >
         {messages.map((message: any, index: number) => (
           <ChatMessage key={index} message={message} />
         ))}
+        <div ref={msgEndDummy}></div>
       </Card>
 
       <Card>

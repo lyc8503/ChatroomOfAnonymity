@@ -2,7 +2,7 @@ import Head from "next/head";
 import { Button, Card, Fieldset, Input, Page, useToasts } from "@geist-ui/core";
 import styles from "../styles/Home.module.css";
 import { useState } from "react";
-import { useLocalStorageState } from "ahooks/lib"; //Workaround: https://github.com/vercel/next.js/issues/55791
+import { useLocalStorageState, useRequest } from "ahooks/lib"; //Workaround: https://github.com/vercel/next.js/issues/55791
 import { useRouter } from "next/router";
 
 export default function Home() {
@@ -16,51 +16,60 @@ export default function Home() {
   const [jwt, setJwt] = useLocalStorageState<string | undefined>("jwt");
   const router = useRouter();
 
-  const handleEmail = async () => {
-    const resp = await fetch("/api/auth/email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email,
-      }),
-    });
+  if (jwt && jwt !== "") {
+    router.push("/chat");
+  }
 
-    if (resp.status < 400) setMailSent(true);
-    console.log(resp);
-    setToast({
-      text: (await resp.json()).msg,
-      delay: 5000,
-      type: resp.status >= 400 ? "error" : "success",
-    });
-  };
+  const { run: handleEmail, loading: emailLoading } = useRequest(
+    async () => {
+      const resp = await fetch("/api/auth/email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+        }),
+      });
 
-  const handleLogin = async () => {
-    const resp = await fetch("/api/auth/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sub: email,
-        nickname: nickname,
-        code: code,
-      }),
-    });
+      if (resp.status < 400) setMailSent(true);
+      setToast({
+        text: (await resp.json()).msg,
+        delay: 5000,
+        type: resp.status >= 400 ? "error" : "success",
+      });
+    },
+    { manual: true }
+  );
 
-    console.log(resp);
-    const r = await resp.json();
-    setToast({
-      text: r.msg,
-      delay: 5000,
-      type: resp.status >= 400 ? "error" : "success",
-    });
-    if (r.token) {
-      setJwt(r.token);
-      router.push("/chat");
-    }
-  };
+  const { run: handleCode, loading: codeLoading } = useRequest(
+    async () => {
+      const resp = await fetch("/api/auth/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sub: email,
+          nickname: nickname,
+          code: code,
+        }),
+      });
+
+      console.log(resp);
+      const r = await resp.json();
+      setToast({
+        text: r.msg,
+        delay: 5000,
+        type: resp.status >= 400 ? "error" : "success",
+      });
+      if (r.token) {
+        setJwt(r.token);
+        router.push("/chat");
+      }
+    },
+    { manual: true }
+  );
 
   return (
     <>
@@ -95,6 +104,7 @@ export default function Home() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         ></Input>
+        <br />
 
         {mailSent ? (
           <>
@@ -116,30 +126,15 @@ export default function Home() {
               onChange={(e) => setNickname(e.target.value)}
             ></Input>
             <br />
-            <Button onClick={handleLogin}>登录</Button>
+            <Button onClick={handleCode} loading={codeLoading}>
+              登录
+            </Button>
             <br />
           </>
         ) : (
-          <>
-            <Button onClick={handleEmail}>发送验证码</Button>
-            <br />
-            <Input
-              scale={4 / 3}
-              disabled
-              label="验证码"
-              placeholder="请先获取邮件验证码"
-              style={{ width: "300px" }}
-            ></Input>
-            <br />
-            <Input
-              scale={4 / 3}
-              disabled
-              label="昵称"
-              placeholder="请先获取邮件验证码"
-              style={{ width: "300px" }}
-            ></Input>
-            <br />
-          </>
+          <Button onClick={handleEmail} loading={emailLoading}>
+            发送验证码
+          </Button>
         )}
       </Card>
       <Card>
