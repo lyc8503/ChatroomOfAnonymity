@@ -35,7 +35,16 @@ export default function ChatMessage({ message }: { message: any }) {
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
               {new Date(message.time).toLocaleString()}
             </p>
-            <Markdown>{message.message}</Markdown>
+            <Markdown
+              components={{
+                img(props) {
+                  const { node, ...rest } = props;
+                  return <img referrerPolicy="no-referrer" {...rest} />;
+                },
+              }}
+            >
+              {message.message}
+            </Markdown>
           </Card>
         </Grid>
       </Grid.Container>
