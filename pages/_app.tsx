@@ -9,7 +9,8 @@ export default function App({ Component, pageProps }: AppProps) {
   useEffect(
     () =>
       setStyle(
-        localStorage.getItem("isAnonymous") === "true" ? "dark" : "light",
+        localStorage.getItem("isDark") === "true" ? "dark" :
+        (localStorage.getItem("isAnonymous") === "true" ? "dark" : "light"),
       ),
     [],
   );
