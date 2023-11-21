@@ -47,6 +47,10 @@ export default function Chat({ e, n, setStyle }: any) {
     "currentCookie",
     { defaultValue: "" }
   );
+  const [isDark, setIsDark] = useLocalStorageState<boolean>(
+    "isDark",
+    { defaultValue: false }
+  );
   const [messages, updateMessages] = useImmer<any[]>([]);
   const [jwt, setJwt] = useLocalStorageState("jwt");
   const router = useRouter();
@@ -113,7 +117,12 @@ export default function Chat({ e, n, setStyle }: any) {
       inputBox.current.value = "";
     }
   };
-
+  const handleKeyDown = async (event: any) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      await runSend();
+    }
+  };
   const { run: runSend, loading: sending } = useRequest(handleSend, {
     manual: true,
   });
@@ -240,9 +249,9 @@ export default function Chat({ e, n, setStyle }: any) {
             <Textarea
               width="80%"
               ref={inputBox}
-              placeholder={`正以${
-                isAnonymous ? hashCookie(currentCookie) : nickname
-              }身份输入消息`}
+              placeholder={`正以${isAnonymous ? hashCookie(currentCookie) : nickname
+                }身份输入消息，按下 Enter 发送消息，按下 Shift+Enter 换行`}
+              onKeyDown={handleKeyDown}
             ></Textarea>
           </NoSsr>
           <Button width="10%" height="60px" loading={sending} onClick={runSend}>
@@ -265,7 +274,7 @@ export default function Chat({ e, n, setStyle }: any) {
               checked={isAnonymous}
               onChange={(e) => {
                 setIsAnonymous(e.target.checked);
-                setStyle(e.target.checked ? "dark" : "light");
+                setStyle(isDark ? "dark" : (e.target.checked ? "dark" : "light"));
               }}
             ></Toggle>
           </p>
@@ -298,6 +307,16 @@ export default function Chat({ e, n, setStyle }: any) {
               onChange={(e) => setNickname(e.target.value)}
             ></Input>
           )}
+          <p>
+            全局暗黑模式
+            <Toggle
+              checked={isDark}
+              onChange={(e) => {
+                setIsDark(e.target.checked);
+                setStyle(e.target.checked ? "dark" : (isAnonymous ? "dark" : "light"));
+              }}
+            ></Toggle>
+          </p>
         </Modal.Content>
         <Modal.Action onClick={({ close }) => close()}>OK</Modal.Action>
       </Modal>
