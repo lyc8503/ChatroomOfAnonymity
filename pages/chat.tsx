@@ -27,7 +27,80 @@ type SignedCookie = {
   signature: string;
 };
 
-export default function Chat({ e, n, setStyle }: any) {
+function ChatMessageList() {
+
+  const [messages, updateMessages] = useImmer<any[]>([]);
+  const msgEndDummy = useRef<any>(null);
+  const [jwt, setJwt] = useLocalStorageState("jwt");
+  const { setToast } = useToasts({ placement: "topRight" });
+  const router = useRouter();
+
+  useEffect(() => {
+    // scroll to bottom
+    msgEndDummy.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+
+  const getMessages = async () => {
+    const resp = await fetch(`/api/message?token=${jwt}`);
+    if (resp.status >= 400) {
+      setToast({
+        text: (await resp.json()).msg,
+        delay: 5000,
+        type: "error",
+      });
+      if (resp.status == 401) {
+        setJwt("");
+        router.push("/");
+      }
+      return;
+    }
+    if (resp.body === null) return;
+    const reader = resp.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buf = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        setToast({
+          text: "连接已断开, 请尝试刷新页面",
+          delay: 60000,
+          type: "error",
+        });
+        break;
+      }
+      buf += value;
+      const splitBuf = buf.split("\n");
+      splitBuf.slice(0, -1).map((str) => {
+        updateMessages((draft) => {
+          draft.push(JSON.parse(str));
+        });
+      });
+      // updateMessages([...messages, ...splitBuf.slice(0, -1).map(s=>JSON.parse(s))])
+      buf = splitBuf.slice(-1)[0];
+    }
+  };
+
+  useRequest(getMessages);
+
+  return (
+    <>
+      <Card
+        style={{
+          overflowY: "scroll",
+          height: "88vh",
+        }}
+      >
+        {messages.map((message: any, index: number) => (
+          <ChatMessage key={index} message={message} />
+        ))}
+        <div ref={msgEndDummy}></div>
+      </Card>
+    </>
+  )
+
+}
+
+function ChatMessageInput({ e, n, setStyle }: any) {
   e = BigInt("0x" + e);
   n = BigInt("0x" + n);
   const { setToast } = useToasts({ placement: "topRight" });
@@ -51,22 +124,14 @@ export default function Chat({ e, n, setStyle }: any) {
     "isDark",
     { defaultValue: false }
   );
-  const [messages, updateMessages] = useImmer<any[]>([]);
-  const [jwt, setJwt] = useLocalStorageState("jwt");
-  const router = useRouter();
   const inputBox = useRef<any>(null);
-  const msgEndDummy = useRef<any>(null);
-
-  useEffect(() => {
-    // scroll to bottom
-    msgEndDummy.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const [jwt, _] = useLocalStorageState("jwt");
 
   const hashCookie = (cookie?: string) =>
     cookie
       ? base64UrlEncode(
-          sha256sum(new TextEncoder().encode(cookie + INSTANCE_NAME))
-        ).slice(0, 8)
+        sha256sum(new TextEncoder().encode(cookie + INSTANCE_NAME))
+      ).slice(0, 8)
       : "UNKNOWN";
   const handleSend = async () => {
     const draft = inputBox.current?.value;
@@ -127,44 +192,6 @@ export default function Chat({ e, n, setStyle }: any) {
     manual: true,
   });
 
-  const getMessages = async () => {
-    const resp = await fetch(`/api/message?token=${jwt}`);
-    if (resp.status >= 400) {
-      setToast({
-        text: (await resp.json()).msg,
-        delay: 5000,
-        type: "error",
-      });
-      if (resp.status == 401) {
-        setJwt("");
-        router.push("/");
-      }
-      return;
-    }
-    if (resp.body === null) return;
-    const reader = resp.body.pipeThrough(new TextDecoderStream()).getReader();
-    let buf = "";
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) {
-        setToast({
-          text: "连接已断开, 请尝试刷新页面",
-          delay: 60000,
-          type: "error",
-        });
-        break;
-      }
-      buf += value;
-      const splitBuf = buf.split("\n");
-      splitBuf.slice(0, -1).map((str) => {
-        updateMessages((draft) => {
-          draft.push(JSON.parse(str));
-        });
-      });
-      // updateMessages([...messages, ...splitBuf.slice(0, -1).map(s=>JSON.parse(s))])
-      buf = splitBuf.slice(-1)[0];
-    }
-  };
 
   const openSettings = () => setSettingsOpen(true);
   const closeSettings = () => setSettingsOpen(false);
@@ -174,16 +201,16 @@ export default function Chat({ e, n, setStyle }: any) {
     let cookie = "";
     entropy.forEach(
       (x) =>
-        (cookie +=
-          "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(
-            x % 62
-          ))
+      (cookie +=
+        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(
+          x % 62
+        ))
     );
     const cookieInt = BigInt(
       "0x" +
-        new TextEncoder()
-          .encode(cookie)
-          .reduce((s, b) => s + b.toString(16).padStart(2, "0"), "")
+      new TextEncoder()
+        .encode(cookie)
+        .reduce((s, b) => s + b.toString(16).padStart(2, "0"), "")
     );
     entropy = new Uint8Array(64);
     crypto.getRandomValues(entropy);
@@ -223,26 +250,8 @@ export default function Chat({ e, n, setStyle }: any) {
     setCurrentCookie("");
   };
 
-  useRequest(getMessages);
-
   return (
     <>
-      <Head>
-        <title>Chatroom Of Anonymity</title>
-      </Head>
-
-      <Card
-        style={{
-          overflowY: "scroll",
-          height: "90vh",
-        }}
-      >
-        {messages.map((message: any, index: number) => (
-          <ChatMessage key={index} message={message} />
-        ))}
-        <div ref={msgEndDummy}></div>
-      </Card>
-
       <Card>
         <div style={{ display: "flex", alignItems: "center" }}>
           <NoSsr>
@@ -320,6 +329,21 @@ export default function Chat({ e, n, setStyle }: any) {
         </Modal.Content>
         <Modal.Action onClick={({ close }) => close()}>OK</Modal.Action>
       </Modal>
+    </>
+  )
+
+
+}
+
+export default function Chat({ e, n, setStyle }: any) {
+  return (
+    <>
+      <Head>
+        <title>Chatroom Of Anonymity</title>
+      </Head>
+
+      <ChatMessageList />
+      <ChatMessageInput e={e} n={n} setStyle={setStyle} />
     </>
   );
 }

@@ -14,13 +14,15 @@ export default function ChatMessage({ message }: { message: any }) {
     <>
       <Grid.Container style={{ marginBlock: "0.5em" }}>
         <Grid>
-          <Tooltip
+          {/* <Tooltip
             text={message.subject}
             placement="topStart"
             style={{ position: "sticky", top: "10px" }}
-          >
+          > */}
+          <div title={message.subject}>
             <Avatar text={message.nickname} scale={2} />
-          </Tooltip>
+          </div>
+          {/* </Tooltip> */}
         </Grid>
         <Grid
           style={{
